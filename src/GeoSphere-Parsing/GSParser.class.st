@@ -55,6 +55,8 @@ GSParser class >> parseCoordinates: aString [
 	"Attempt to parse the supplied coordinates, accepting any known format (see class comments)"
 
 	(self parsePoint: aString) ifNotNil: [ :coordinates | ^coordinates ].
+	(self parseDMS: aString) ifNotNil: [ :coordinates | ^coordinates ].
+	^nil
 ]
 
 { #category : #public }
