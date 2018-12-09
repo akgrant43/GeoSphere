@@ -1,5 +1,5 @@
 "
-GSCoordinates represents a latitude / longitude location on a globe. 
+GSCoordinates represents a latitude / longitude location on a globe in degrees. 
 
 Public API and Key Messages
 
@@ -69,8 +69,11 @@ GSCoordinates >> latitude [
 ]
 
 { #category : #accessing }
-GSCoordinates >> latitude: anObject [
-	latitude := anObject
+GSCoordinates >> latitude: aNumber [
+
+	(aNumber between: -90 and: 90) ifFalse: 
+		[ self error: 'latitude must be between -90 and 90' ].
+	latitude := aNumber
 ]
 
 { #category : #accessing }
@@ -79,8 +82,11 @@ GSCoordinates >> longitude [
 ]
 
 { #category : #accessing }
-GSCoordinates >> longitude: anObject [
-	longitude := anObject
+GSCoordinates >> longitude: aNumber [
+
+	(aNumber between: -180 and: 180) ifFalse:
+		[ self error: 'longitude must be between -180 and 180' ].
+	longitude := aNumber
 ]
 
 { #category : #printing }
