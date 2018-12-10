@@ -89,6 +89,30 @@ GSCoordinates >> longitude: aNumber [
 	longitude := aNumber
 ]
 
+{ #category : #displaying }
+GSCoordinates >> openStreetMap [
+	"Open the default browser with OpenStreetMap at the receiver's coordinates and default zoom"
+
+	^self openStreetMap: 17
+]
+
+{ #category : #displaying }
+GSCoordinates >> openStreetMap: zoom [
+	"Open the default browser with OpenStreetMap at the receiver's coordinates and specified zoom"
+
+	| url |
+
+	url := String streamContents: [ :stream |
+		stream
+			<< 'https://www.openstreetmap.org#map=';
+			print: zoom asInteger;
+			nextPut: $/;
+			print: latitude;
+			nextPut: $/;
+			print: longitude ].
+	WebBrowser openOn: url
+]
+
 { #category : #printing }
 GSCoordinates >> printOn: aStream [
 
