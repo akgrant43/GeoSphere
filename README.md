@@ -25,3 +25,15 @@ Metacello new
 	baseline: 'GeoSphere';
 	load
 ```
+
+
+### Acknowledgements
+
+Many thanks to:
+
+* Sven Van Caekenberghe
+* Benoît St-Jean
+* Richard O'Keefe
+* Pierce Ng
+
+for their suggestions and input.  Any bugs are, of course, mine.
