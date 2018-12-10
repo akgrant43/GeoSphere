@@ -16,7 +16,7 @@ BaselineOfGeoSphere >> baseline: spec [
 		packages do: [ :package |
 			spec package: package ].
 		spec
-			package: #('GeoSphere-Tests');
+			package: 'GeoSphere-Tests';
 			group: 'Core' with: packages;
 			group: 'Tests' with: #('GeoSphere-Tests');
 			group: 'all' with: #(Core Tests);
