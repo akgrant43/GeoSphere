@@ -5,6 +5,26 @@ Class {
 }
 
 { #category : #tests }
+GSParserTest >> testDMSRoundTrip [
+	"Check that we can parse the generated string format"
+
+	| latitude longitude coordinates |
+
+	latitude := -38.28697.
+	longitude := 144.61025.
+	coordinates := GSParser parseCoordinates: 
+			(longitude @ latitude) asGSCoordinates asDegreesMinutesSeconds.
+	self
+		assert: coordinates latitude
+		closeTo: latitude.
+
+	self
+		assert: coordinates longitude
+		closeTo: longitude.
+
+]
+
+{ #category : #tests }
 GSParserTest >> testParseCoordinates [
 
 	self

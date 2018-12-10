@@ -28,6 +28,34 @@ Class {
 	#category : #'GeoSphere-Model'
 }
 
+{ #category : #printing }
+GSCoordinates class >> dms: aNumber labels: labelArray to: aStream [
+	"Write the supplied number (latitude or longitude) as Degrees Minutes Seconds on aStream.
+	The labelArray provides the identifer for Degrees, Minutes and Seconds"
+
+	| absNumber degrees minutes seconds |
+
+	absNumber := aNumber abs.
+	degrees := absNumber truncated.
+	minutes := ((absNumber - degrees) * 60) truncated.
+	seconds := ((absNumber - degrees - (minutes / 60)) * 3600) roundTo: 0.01.
+	aStream 
+		print: degrees;
+		<< labelArray first;
+		print: minutes;
+		<< labelArray second;
+		print: seconds asFloat;
+		<< labelArray third.
+]
+
+{ #category : #printing }
+GSCoordinates class >> dms: aNumber to: aStream [
+	"Write the supplied number (latitude or longitude) as Degrees Minutes Seconds on aStream.
+	The labelArray provides the identifer for Degrees, Minutes and Seconds"
+
+	^self dms: aNumber labels: #('° ' '′ ' '″') to: aStream
+]
+
 { #category : #'instance creation' }
 GSCoordinates class >> latitude: latitude longitude: longitude [
 
@@ -47,6 +75,21 @@ GSCoordinates >> = anObject [
 		ifFalse: [ ^ false ].
 	^ longitude = anObject longitude
 		and: [ latitude = anObject latitude ]
+]
+
+{ #category : #converting }
+GSCoordinates >> asDegreesMinutesSeconds [
+	"Answer the receiver in DMS string format"
+
+	^String streamContents: [ :stream |
+		self class dms: latitude to: stream.
+		stream << (latitude >= 0
+			ifTrue: [ ' N, ' ]
+			ifFalse: [ ' S, ' ]).
+		self class dms: longitude to: stream.
+		stream << (longitude >= 0
+			ifTrue: [ ' E' ]
+			ifFalse: [ ' W' ]) ]
 ]
 
 { #category : #converting }
@@ -107,9 +150,9 @@ GSCoordinates >> openStreetMap: zoom [
 			<< 'https://www.openstreetmap.org#map=';
 			print: zoom asInteger;
 			nextPut: $/;
-			print: latitude;
+			print: latitude asFloat;
 			nextPut: $/;
-			print: longitude ].
+			print: longitude asFloat ].
 	WebBrowser openOn: url
 ]
 
