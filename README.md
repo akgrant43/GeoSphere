@@ -14,3 +14,14 @@ Examples of string formats that can be parsed:
 * 38 deg 17' 13.09" S, 144 deg 36' 36.9" E
 * https://www.openstreetmap.org/#map=18/-38.28697/144.61025
 
+
+### Installing
+
+GeoSphere can be installed in Pharo 7 or later with
+
+```smalltalk
+Metacello new
+	repository: 'github://akgrant43/GeoSphere/src';
+	baseline: 'GeoSphere';
+	load
+```
