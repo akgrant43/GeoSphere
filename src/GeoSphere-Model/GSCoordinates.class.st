@@ -1,24 +1,22 @@
 "
-GSCoordinates represents a latitude / longitude location on a globe in degrees. 
+GSCoordinates represents a latitude / longitude location on a globe in degrees and provides useful operations, e.g. 
 
-Public API and Key Messages
+- calculate distance between coordinates
+- open a map at the coordinates
 
-- message one   
-- message two 
-- (for bonus points) how to create instances.
 
-   One simple example is simply gorgeous.
- 
 Internal Representation and Key Implementation Points.
 
 Instance Variables
-	latitude:		<Object>
-	longitude:		<Object>
+	latitude:		<Number>
+	longitude:	<Number>
 
 
 Implementation Points
 
-
+- The two main sources of information for GeoSphere are:
+-- http://www.movable-type.co.uk/scripts/latlong.html
+-- https://cran.r-project.org/web/packages/geosphere/geosphere.pdf
 - Earth's Radius is taken from https://cran.r-project.org/web/packages/geosphere/geosphere.pdf, which agrees with the equatorial radius given in https://en.wikipedia.org/wiki/Earth_radius
 
 "
