@@ -19,6 +19,7 @@ Class {
 	#superclass : #Object,
 	#classVars : [
 		'DmsRE',
+		'OsmRE',
 		'PointRE'
 	],
 	#category : #'GeoSphere-Parsing'
@@ -43,11 +44,13 @@ GSParser class >> decimalFromDegrees: degrees minutes: minutes seconds: seconds 
 GSParser class >> initialize [ 
 	<script>
 
-	| coordinate |
+	| number coordinate |
 
-	PointRE := '\s*([-+]?[0-9]*\.?[0-9]+)\s*@\s*([-+]?[0-9]*\.?[0-9]+)\s*' asRegex.
+	number := '\s*([-+]?[0-9]*\.?[0-9]+)\s*'.
+	PointRE := (number, '@', number) asRegex.
 	coordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?)["″]\s?([news]?)\s*'.
 	DmsRE := (coordinate, ',', coordinate) asRegexIgnoringCase.
+	OsmRE := ('http.+openstreetmap\.org.+#map=\d\d?/', number, '/', number) asRegexIgnoringCase.
 ]
 
 { #category : #public }
@@ -56,6 +59,7 @@ GSParser class >> parseCoordinates: aString [
 
 	(self parsePoint: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	(self parseDMS: aString) ifNotNil: [ :coordinates | ^coordinates ].
+	(self parseOpenStreetMap: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	^nil
 ]
 
@@ -78,6 +82,17 @@ GSParser class >> parseDMS: aString [
 						latitude: latitude
 						longitude: longitude ]
 	ifFalse: 
+		[ nil ]
+]
+
+{ #category : #parsing }
+GSParser class >> parseOpenStreetMap: aString [
+
+	^(OsmRE matches: aString) ifTrue: 
+		[ GSCoordinates 
+			latitude: (OsmRE subexpression: 2) asNumber
+			longitude: (OsmRE subexpression: 3) asNumber ]
+	ifFalse:
 		[ nil ]
 ]
 

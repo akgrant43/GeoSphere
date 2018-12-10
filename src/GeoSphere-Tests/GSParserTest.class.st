@@ -17,6 +17,10 @@ GSParserTest >> testParseCoordinates [
 
 	self
 		assert: (GSParser parseCoordinates: '13.5 @ 50.5 ')
+		equals: (13.5 @ 50.5) asGSCoordinates.
+
+	self
+		assert: (GSParser parseOpenStreetMap: 'https://www.openstreetmap.org/search?query=pt%20lonsdale%2C%20victoria#map=18/50.5/13.5')
 		equals: (13.5 @ 50.5) asGSCoordinates
 ]
 
@@ -31,6 +35,14 @@ GSParserTest >> testParseDMS [
 		assert: (GSParser parseDMS: '53°30′00″S, 13°30′00″W')
 		equals: (-13.5 @ -53.5) asGSCoordinates.
 
+]
+
+{ #category : #tests }
+GSParserTest >> testParseOpenStreetMap [
+
+	self
+		assert: (GSParser parseOpenStreetMap: 'https://www.openstreetmap.org/search?query=pt%20lonsdale%2C%20victoria#map=18/50.5/13.5')
+		equals: (13.5 @ 50.5) asGSCoordinates
 ]
 
 { #category : #tests }
