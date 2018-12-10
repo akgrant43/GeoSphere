@@ -11,12 +11,16 @@ Public API and Key Messages
  
 Internal Representation and Key Implementation Points.
 
-    Instance Variables
+Instance Variables
 	latitude:		<Object>
 	longitude:		<Object>
 
 
-    Implementation Points
+Implementation Points
+
+
+- Earth's Radius is taken from https://cran.r-project.org/web/packages/geosphere/geosphere.pdf, which agrees with the equatorial radius given in https://en.wikipedia.org/wiki/Earth_radius
+
 "
 Class {
 	#name : #GSCoordinates,
@@ -24,6 +28,9 @@ Class {
 	#instVars : [
 		'latitude',
 		'longitude'
+	],
+	#classVars : [
+		'EarthRadius'
 	],
 	#category : #'GeoSphere-Model'
 }
@@ -54,6 +61,13 @@ GSCoordinates class >> dms: aNumber to: aStream [
 	The labelArray provides the identifer for Degrees, Minutes and Seconds"
 
 	^self dms: aNumber labels: #('° ' '′ ' '″') to: aStream
+]
+
+{ #category : #'class initialization' }
+GSCoordinates class >> initialize [ 
+	<script>
+
+	EarthRadius := 6378137. "metres"
 ]
 
 { #category : #'instance creation' }
@@ -99,11 +113,60 @@ GSCoordinates >> asPoint [
 	^longitude @ latitude
 ]
 
+{ #category : #operations }
+GSCoordinates >> distanceTo: aCoordinate [
+	"Answer the distance to aCoordinate (on Earth) using the default method, currently haversine"
+
+	^self haversineDistanceTo: aCoordinate
+]
+
+{ #category : #operations }
+GSCoordinates >> distanceTo: aCoordinate isLessThan: meters [
+	"Answer a boolean indicating whether the distance between the receiver and aCoordinate is less than meters, using the harversine formula on Earth (as a sphere)"
+
+	"Haversine distance is relatively expensive, for coordinates that are far enough apart we can use simple difference in latitude or longitude.
+	deg / meter stays constant for latitude, approx. 111000 m/deg.  Double it for safety.
+	Longitude gets smaller away from the equator.  For latitudes less than 60 deg longitudes are at least 55000 m/deg"
+	^((aCoordinate y - self y) abs > (meters / 55500.0) or: 
+		[ (self y abs < 60 and: [ (aCoordinate x - self x) abs > (meters / 27500.0) ])]) 
+		ifTrue: [ false ]
+		ifFalse: [ (self haversineDistanceTo: aCoordinate) < meters ]
+]
+
 { #category : #comparing }
 GSCoordinates >> hash [
 	"Answer an integer value that is related to the identity of the receiver."
 
 	^ longitude hash bitXor: latitude hash
+]
+
+{ #category : #operations }
+GSCoordinates >> haversineDistanceTo: aCoordinate [
+	"Answer the distance between the receiver and aCoordinate on the earth in metres, using the Haversine formula.
+	This assumes the earth is a perfect sphere and is the shortest distance between the two points, also known as the great-circle distance, or distance as the crow flies"
+
+	^self haversineDistanceTo: aCoordinate radius: EarthRadius
+]
+
+{ #category : #operations }
+GSCoordinates >> haversineDistanceTo: aCoordinate radius: radius [
+	"Answer the distance between the receiver and aCoordinate on a sphere of radius meters using the Haversine formula.
+	This is the shortest distance between the two points"
+	"Based on code at http://www.movable-type.co.uk/scripts/latlong.html"
+
+	| phi1 phi2 deltaPhi deltaLambda a c |
+
+	phi1 := self y degreesToRadians.
+	phi2 := aCoordinate y degreesToRadians.
+	deltaPhi := (aCoordinate y - self y) degreesToRadians.
+	deltaLambda := (aCoordinate x - self x) degreesToRadians.
+
+	a := ((deltaPhi / 2) sin ** 2) +
+			(phi1 cos * phi2 cos *
+			((deltaLambda / 2) sin ** 2)).
+	c := 2 * (a sqrt arcTan2: (1 - a) sqrt).
+	^c * radius.
+
 ]
 
 { #category : #accessing }
@@ -165,4 +228,20 @@ GSCoordinates >> printOn: aStream [
 		<< ', ';
 		print: longitude;
 		<< ')'
+]
+
+{ #category : #accessing }
+GSCoordinates >> x [
+	"Answer the receivers longitude.
+	This is a convenience method allowing Points to be used directly in calculations"
+
+	^longitude
+]
+
+{ #category : #accessing }
+GSCoordinates >> y [
+	"Answer the receivers latitude.
+	This is a convenience method allowing Points to be used directly in calculations"
+
+	^latitude
 ]
