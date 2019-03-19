@@ -18,6 +18,7 @@ Class {
 	#name : #GSParser,
 	#superclass : #Object,
 	#classVars : [
+		'DecimalRE',
 		'DmsRE',
 		'OsmRE',
 		'PointRE'
@@ -51,6 +52,7 @@ GSParser class >> initialize [
 	coordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?)["″]\s?([news]?)\s*'.
 	DmsRE := (coordinate, ',', coordinate) asRegexIgnoringCase.
 	OsmRE := ('http.+openstreetmap\.org.+#map=\d\d?/', number, '/', number) asRegexIgnoringCase.
+	DecimalRE := '(\d\d?\d?.\d+)\s+(\d\d?\d?.\d+)' asRegex.
 ]
 
 { #category : #public }
@@ -58,6 +60,7 @@ GSParser class >> parseCoordinates: aString [
 	"Attempt to parse the supplied coordinates, accepting any known format (see class comments)"
 
 	(self parsePoint: aString) ifNotNil: [ :coordinates | ^coordinates ].
+	(self parseDecimal: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	(self parseDMS: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	(self parseOpenStreetMap: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	^nil
@@ -83,6 +86,17 @@ GSParser class >> parseDMS: aString [
 						longitude: longitude ]
 	ifFalse: 
 		[ nil ]
+]
+
+{ #category : #public }
+GSParser class >> parseDecimal: aString [
+	"Parse the supplied coordinates assuming decimal 'lat long' format"
+
+	^(DecimalRE matches: aString) 
+		ifTrue: [ GSCoordinates 
+						latitude: (DecimalRE subexpression: 2) asNumber
+						longitude: (DecimalRE subexpression: 3) asNumber ]
+		ifFalse: [ nil ]
 ]
 
 { #category : #parsing }
