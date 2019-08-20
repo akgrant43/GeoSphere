@@ -131,6 +131,16 @@ GSCoordinates >> distanceTo: aCoordinate isLessThan: meters [
 		ifFalse: [ (self haversineDistanceTo: aCoordinate) < meters ]
 ]
 
+{ #category : #inspecting }
+GSCoordinates >> gtSummaryFor: aView [
+	<gtView>
+
+	^aView textEditor 
+		title: 'Summary';
+		priority: 10;
+		text: [ self summaryString asRopedText ]
+]
+
 { #category : #comparing }
 GSCoordinates >> hash [
 	"Answer an integer value that is related to the identity of the receiver."
@@ -226,6 +236,24 @@ GSCoordinates >> printOn: aStream [
 		<< ', ';
 		print: longitude;
 		<< ')'
+]
+
+{ #category : #printing }
+GSCoordinates >> summaryOn: aStream [
+
+	aStream
+		<< 'Decimal: ';
+		print: latitude;
+		<< ', ';
+		print: longitude; cr;
+		<< 'DMS:     ';
+		<< self asDegreesMinutesSeconds; cr.
+]
+
+{ #category : #accessing }
+GSCoordinates >> summaryString [
+
+	^String streamContents: [ :stream | self summaryOn: stream ]
 ]
 
 { #category : #accessing }
