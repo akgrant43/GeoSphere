@@ -31,6 +31,7 @@ GSParser class >> decimalFromDegrees: degrees minutes: minutes seconds: seconds 
 
 	| char decimal |
 
+	(direction isEmpty and: [ degrees + minutes + seconds = 0 ]) ifTrue: [ ^nil ].
 	char := direction first asUppercase.
 	decimal := (char = $N or: [ char = $E ]) ifTrue: 
 		[ 1 ]
@@ -81,6 +82,8 @@ GSParser class >> parseDMS: aString [
 								minutes: (DmsRE subexpression: 9) asNumber
 								seconds: (DmsRE subexpression: 10) asNumber
 								direction: (DmsRE subexpression: 11).
+		(latitude isNil and: [ longitude isNil ])
+			ifTrue: [ ^nil ].
 		GSCoordinates 
 						latitude: latitude
 						longitude: longitude ]
