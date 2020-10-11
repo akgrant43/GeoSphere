@@ -32,7 +32,9 @@ GSParser class >> decimalFromDegrees: degrees minutes: minutes seconds: seconds 
 	| char decimal |
 
 	(direction isEmpty and: [ degrees + minutes + seconds = 0 ]) ifTrue: [ ^nil ].
-	char := direction first asUppercase.
+	char := direction
+		ifEmpty: [ "positive" $N ]
+		ifNotEmpty: [ direction first asUppercase ].
 	decimal := (char = $N or: [ char = $E ]) ifTrue: 
 		[ 1 ]
 	ifFalse: [ (char = $S or: [ char = $W ]) ifTrue:
