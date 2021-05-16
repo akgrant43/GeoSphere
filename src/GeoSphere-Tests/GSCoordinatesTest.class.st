@@ -36,6 +36,28 @@ GSCoordinatesTest >> testArcTan2 [
 ]
 
 { #category : #tests }
+GSCoordinatesTest >> testDestinationBearingDistance [
+	| c1 c2 |
+
+	c1 := GSParser parseCoordinates: '53 deg 19'' 14" N, 1 deg 43'' 47" W'.
+	c2 := c1 destinationBearing: (GSParser parseDmsAngle: '96 deg 1'' 18"') distance: 124800.
+	self assert: c2 latitude closeTo: 53.1884.
+	self assert: c2 longitude closeTo: 0.1312.
+	^ c2
+]
+
+{ #category : #tests }
+GSCoordinatesTest >> testDestinationBearingDistance2 [
+	| c1 c2 |
+
+	c1 := GSParser parseCoordinates: '53 deg 19'' 14" N, 1 deg 43'' 47" W'.
+	c2 := c1 destinationBearing: (GSParser parseDmsAngle: '196 deg 0'' 0"') distance: 124800.
+	self assert: c2 latitude closeTo: 52.2418.
+	self assert: c2 longitude closeTo: -2.2344.
+	^ c2
+]
+
+{ #category : #tests }
 GSCoordinatesTest >> testDistanceToIsLessThan [
 
 	self assert: ((144.61416 @ -38.27312) asGSCoordinates 

@@ -20,6 +20,8 @@ Class {
 	#classVars : [
 		'DecimalRE',
 		'DmRE',
+		'DmsAngleRE',
+		'DmsCoordinateRE',
 		'DmsRE',
 		'OsmRE',
 		'PointRE'
@@ -53,11 +55,13 @@ GSParser class >> initialize [
 	number := '\s*([-+]?[0-9]*\.?[0-9]+)\s*'.
 	PointRE := (number, '@', number) asRegex.
 	coordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?)["″]\s?([news]?)\s*'.
+	DmsCoordinateRE := coordinate asRegexIgnoringCase.
 	DmsRE := (coordinate, ',', coordinate) asRegexIgnoringCase.
 	decimalMinuteCoordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?\.?\d?\d?\d?)[''′]\s?([news]?)\s*'.
 	DmRE := (decimalMinuteCoordinate, ',', decimalMinuteCoordinate) asRegexIgnoringCase.
 	OsmRE := ('http.+openstreetmap\.org.+#map=\d\d?/', number, '/', number) asRegexIgnoringCase.
 	DecimalRE := '(\d\d?\d?.\d+)\s+(\d\d?\d?.\d+)' asRegex.
+	DmsAngleRE := '(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?)["″]' asRegexIgnoringCase.
 ]
 
 { #category : #public }
@@ -113,8 +117,8 @@ GSParser class >> parseDMS: aString [
 		(latitude isNil and: [ longitude isNil ])
 			ifTrue: [ ^nil ].
 		GSCoordinates 
-						latitude: latitude
-						longitude: longitude ]
+						latitude: latitude asFloat
+						longitude: longitude asFloat ]
 	ifFalse: 
 		[ nil ]
 ]
@@ -128,6 +132,39 @@ GSParser class >> parseDecimal: aString [
 						latitude: (DecimalRE subexpression: 2) asNumber
 						longitude: (DecimalRE subexpression: 3) asNumber ]
 		ifFalse: [ nil ]
+]
+
+{ #category : #public }
+GSParser class >> parseDmsAngle: aString [
+	"Parse the supplied DMS angle"
+	| angle |
+
+	^ (DmsAngleRE matches: aString) ifTrue: 
+		[ angle := self decimalFromDegrees: (DmsAngleRE subexpression: 2) asNumber
+								minutes: (DmsAngleRE subexpression: 4) asNumber
+								seconds: (DmsAngleRE subexpression: 5) asNumber
+								direction: ''.
+		angle ifNil: [ ^ nil ].
+		angle asFloat ]
+	ifFalse: 
+		[ nil ]
+]
+
+{ #category : #public }
+GSParser class >> parseDmsCoordinate: aString [
+	"Parse the supplied coordinate"
+
+	| coordinate |
+
+	^(DmsCoordinateRE matches: aString) ifTrue: 
+		[ coordinate := self decimalFromDegrees: (DmsRE subexpression: 2) asNumber
+								minutes: (DmsRE subexpression: 4) asNumber
+								seconds: (DmsRE subexpression: 5) asNumber
+								direction: (DmsRE subexpression: 6).
+		coordinate ifNil: [ ^ nil ].
+		coordinate asFloat ]
+	ifFalse: 
+		[ nil ]
 ]
 
 { #category : #parsing }

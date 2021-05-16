@@ -112,6 +112,20 @@ GSCoordinates >> asPoint [
 ]
 
 { #category : #operations }
+GSCoordinates >> destinationBearing: bearingInDegrees distance: distanceInMeters [
+	"Answer the coordinates of a point distanceInMeters away in bearingInDegrees direction"
+	| latitude2 longitude2 angularDistance |
+
+	angularDistance := distanceInMeters / EarthRadius.
+	latitude2 := (latitude degreeSin * angularDistance cos +
+		(latitude degreeCos * angularDistance sin * bearingInDegrees degreeCos)) arcSin radiansToDegrees.
+	longitude2 := longitude + 
+		((bearingInDegrees degreeSin * angularDistance sin * latitude degreeCos) arcTan2: 
+			(angularDistance cos - (latitude degreeSin * latitude2 degreeSin))) radiansToDegrees.
+	^ self class latitude: latitude2 longitude: longitude2
+]
+
+{ #category : #operations }
 GSCoordinates >> distanceTo: aCoordinate [
 	"Answer the distance to aCoordinate (on Earth) using the default method, currently haversine"
 
@@ -190,6 +204,17 @@ GSCoordinates >> latitude: aNumber [
 	latitude := aNumber
 ]
 
+{ #category : #converting }
+GSCoordinates >> latitudeAsDegreesMinutesSeconds [
+	"Answer the receiver's latitude in DMS string format"
+
+	^ String streamContents: [ :stream |
+		self class dms: latitude to: stream.
+		stream << (latitude >= 0
+			ifTrue: [ ' N, ' ]
+			ifFalse: [ ' S, ' ]) ]
+]
+
 { #category : #accessing }
 GSCoordinates >> longitude [
 	^ longitude
@@ -201,6 +226,17 @@ GSCoordinates >> longitude: aNumber [
 	(aNumber between: -180 and: 180) ifFalse:
 		[ self error: 'longitude must be between -180 and 180' ].
 	longitude := aNumber
+]
+
+{ #category : #converting }
+GSCoordinates >> longitudeAsDegreesMinutesSeconds [
+	"Answer the receiver's latitude in DMS string format"
+
+	^ String streamContents: [ :stream |
+		self class dms: longitude to: stream.
+		stream << (longitude >= 0
+			ifTrue: [ ' E ' ]
+			ifFalse: [ ' W ' ]) ]
 ]
 
 { #category : #displaying }
