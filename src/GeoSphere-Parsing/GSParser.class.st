@@ -157,10 +157,10 @@ GSParser class >> parseDmsCoordinate: aString [
 	| coordinate |
 
 	^(DmsCoordinateRE matches: aString) ifTrue: 
-		[ coordinate := self decimalFromDegrees: (DmsRE subexpression: 2) asNumber
-								minutes: (DmsRE subexpression: 4) asNumber
-								seconds: (DmsRE subexpression: 5) asNumber
-								direction: (DmsRE subexpression: 6).
+		[ coordinate := self decimalFromDegrees: (DmsCoordinateRE subexpression: 2) asNumber
+								minutes: (DmsCoordinateRE subexpression: 4) asNumber
+								seconds: (DmsCoordinateRE subexpression: 5) asNumber
+								direction: (DmsCoordinateRE subexpression: 6).
 		coordinate ifNil: [ ^ nil ].
 		coordinate asFloat ]
 	ifFalse: 
