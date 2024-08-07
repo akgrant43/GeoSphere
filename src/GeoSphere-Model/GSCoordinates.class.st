@@ -49,7 +49,7 @@ GSCoordinates class >> dms: aNumber labels: labelArray to: aStream [
 		<< labelArray first;
 		print: minutes;
 		<< labelArray second;
-		print: seconds asFloat;
+		<< (seconds asFloat printShowingDecimalPlaces: 2);
 		<< labelArray third.
 ]
 
@@ -143,6 +143,20 @@ GSCoordinates >> distanceTo: aCoordinate isLessThan: meters [
 		[ (self y abs < 60 and: [ (aCoordinate x - self x) abs > (meters / 27500.0) ])]) 
 		ifTrue: [ false ]
 		ifFalse: [ (self haversineDistanceTo: aCoordinate) < meters ]
+]
+
+{ #category : #ui }
+GSCoordinates >> gtMapFor: aView [
+	"Display a single tile map around the image location"
+	<gtView>
+
+	^ aView explicit
+		title: 'OSM Map';
+		priority: 30;
+		stencil: [ self osmMapElement ];
+		actionButtonLabel: 'Copy URL' action:
+			[ Clipboard default clipboardText: 
+				(self openStreetMapUrl: 17) ].
 ]
 
 { #category : #inspecting }
@@ -263,6 +277,37 @@ GSCoordinates >> openStreetMap: zoom [
 	WebBrowser openOn: url
 ]
 
+{ #category : #displaying }
+GSCoordinates >> openStreetMapUrl: zoom [
+	"Answer the OpenStreetMap URL for the receiver at the specified zoom"
+
+	^ String streamContents: [ :stream |
+		stream
+			<< 'https://www.openstreetmap.org#map=';
+			print: zoom asInteger;
+			nextPut: $/;
+			print: latitude asFloat;
+			nextPut: $/;
+			print: longitude asFloat ]
+]
+
+{ #category : #ui }
+GSCoordinates >> osmMapElement [
+	| map |
+
+	map := GtOsmMap new
+		includeCoordinate: self;
+		zoom: 12;
+		addChildren.
+	self osmMarker addToMap: map.
+	^ map asScalableElement.
+]
+
+{ #category : #ui }
+GSCoordinates >> osmMarker [
+	^ GtOsmMarker new coordinate: self
+]
+
 { #category : #printing }
 GSCoordinates >> printOn: aStream [
 
@@ -279,11 +324,13 @@ GSCoordinates >> summaryOn: aStream [
 
 	aStream
 		<< 'Decimal: ';
-		print: latitude;
-		<< ', ';
-		print: longitude; cr;
+			print: latitude;
+			<< ', ';
+			print: longitude; cr;
 		<< 'DMS:     ';
-		<< self asDegreesMinutesSeconds; cr.
+			<< self asDegreesMinutesSeconds; cr;
+		<< 'URL:     ';
+			<< (self openStreetMapUrl: 17); cr.
 ]
 
 { #category : #accessing }

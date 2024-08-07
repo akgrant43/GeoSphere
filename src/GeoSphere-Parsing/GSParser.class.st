@@ -167,6 +167,18 @@ GSParser class >> parseDmsCoordinate: aString [
 		[ nil ]
 ]
 
+{ #category : #accessing }
+GSParser class >> parseGeoCoordinate: aString [ 
+	| rx coordinate |
+
+	rx := 'geo\:(\d\d?\d?.\d+),(\d\d?\d?.\d+).*' asRegexIgnoringCase.
+	(rx matches: aString) ifTrue:
+		[ coordinate := GSCoordinates
+			latitude: (rx subexpression: 2) asNumber
+			longitude: (rx subexpression: 3) asNumber ].
+	^ coordinate
+]
+
 { #category : #parsing }
 GSParser class >> parseOpenStreetMap: aString [
 
