@@ -153,14 +153,14 @@ GSParser class >> parseDmsAngle: aString [
 { #category : #public }
 GSParser class >> parseDmsCoordinate: aString [
 	"Parse the supplied coordinate"
+	| coordinate re |
 
-	| coordinate |
-
-	^(DmsCoordinateRE matches: aString) ifTrue: 
-		[ coordinate := self decimalFromDegrees: (DmsCoordinateRE subexpression: 2) asNumber
-								minutes: (DmsCoordinateRE subexpression: 4) asNumber
-								seconds: (DmsCoordinateRE subexpression: 5) asNumber
-								direction: (DmsCoordinateRE subexpression: 6).
+	re := DmsCoordinateRE copy.
+	^(re matches: aString) ifTrue: 
+		[ coordinate := self decimalFromDegrees: (re subexpression: 2) asNumber
+								minutes: (re subexpression: 4) asNumber
+								seconds: (re subexpression: 5) asNumber
+								direction: (re subexpression: 6).
 		coordinate ifNil: [ ^ nil ].
 		coordinate asFloat ]
 	ifFalse: 
