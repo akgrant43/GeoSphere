@@ -54,7 +54,7 @@ GSParser class >> initialize [
 
 	number := '\s*([-+]?[0-9]*\.?[0-9]+)\s*'.
 	PointRE := (number, '@', number) asRegex.
-	coordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?)["″]\s?([news]?)\s*'.
+	coordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?)[''′]\s?(\d\d?\.?\d?\d?\d?)["″]\s?([news]?)\s*'.
 	DmsCoordinateRE := coordinate asRegexIgnoringCase.
 	DmsRE := (coordinate, ',', coordinate) asRegexIgnoringCase.
 	decimalMinuteCoordinate := '\s*(\d\d?\d?)\s?(deg|°)\s?(\d\d?\.?\d?\d?\d?)[''′]\s?([news]?)\s*'.
@@ -70,26 +70,39 @@ GSParser class >> parseCoordinates: aString [
 
 	(self parsePoint: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	(self parseDecimal: aString) ifNotNil: [ :coordinates | ^coordinates ].
-	(self parseDMS: aString) ifNotNil: [ :coordinates | ^coordinates ].
+	(self parseDms: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	(self parseOpenStreetMap: aString) ifNotNil: [ :coordinates | ^coordinates ].
 	^nil
 ]
 
 { #category : #public }
-GSParser class >> parseDM: aString [
+GSParser class >> parseDecimal: aString [
+	"Parse the supplied coordinates assuming decimal 'lat long' format"
+	| re |
+
+	re := DecimalRE copy.
+	^ (re matches: aString) 
+		ifTrue: [ GSCoordinates 
+						latitude: (re subexpression: 2) asNumber
+						longitude: (re subexpression: 3) asNumber ]
+		ifFalse: [ nil ]
+]
+
+{ #category : #public }
+GSParser class >> parseDm: aString [
 	"Parse the supplied coordinates assuming long , lat point format"
+	| re latitude longitude |
 
-	| latitude longitude |
-
-	^(DmRE matches: aString) ifTrue: 
-		[ latitude := self decimalFromDegrees: (DmRE subexpression: 2) asNumber
-								minutes: (DmRE subexpression: 4) asNumber
+	re := DmRE copy.
+	^(re matches: aString) ifTrue: 
+		[ latitude := self decimalFromDegrees: (re subexpression: 2) asNumber
+								minutes: (re subexpression: 4) asNumber
 								seconds: 0
-								direction: (DmRE subexpression: 5).
-		longitude := self decimalFromDegrees: (DmRE subexpression: 6) asNumber
-								minutes: (DmRE subexpression: 8) asNumber
+								direction: (re subexpression: 5).
+		longitude := self decimalFromDegrees: (re subexpression: 6) asNumber
+								minutes: (re subexpression: 8) asNumber
 								seconds: 0
-								direction: (DmRE subexpression: 9).
+								direction: (re subexpression: 9).
 		(latitude isNil and: [ longitude isNil ])
 			ifTrue: [ ^nil ].
 		GSCoordinates 
@@ -100,20 +113,21 @@ GSParser class >> parseDM: aString [
 ]
 
 { #category : #public }
-GSParser class >> parseDMS: aString [
+GSParser class >> parseDms: aString [
 	"Parse the supplied coordinates assuming long @ lat point format"
 
-	| latitude longitude |
+	| re latitude longitude |
 
-	^(DmsRE matches: aString) ifTrue: 
-		[ latitude := self decimalFromDegrees: (DmsRE subexpression: 2) asNumber
-								minutes: (DmsRE subexpression: 4) asNumber
-								seconds: (DmsRE subexpression: 5) asNumber
-								direction: (DmsRE subexpression: 6).
-		longitude := self decimalFromDegrees: (DmsRE subexpression: 7) asNumber
-								minutes: (DmsRE subexpression: 9) asNumber
-								seconds: (DmsRE subexpression: 10) asNumber
-								direction: (DmsRE subexpression: 11).
+	re := DmsRE  copy.
+	^(re matches: aString) ifTrue: 
+		[ latitude := self decimalFromDegrees: (re subexpression: 2) asNumber
+								minutes: (re subexpression: 4) asNumber
+								seconds: (re subexpression: 5) asNumber
+								direction: (re subexpression: 6).
+		longitude := self decimalFromDegrees: (re subexpression: 7) asNumber
+								minutes: (re subexpression: 9) asNumber
+								seconds: (re subexpression: 10) asNumber
+								direction: (re subexpression: 11).
 		(latitude isNil and: [ longitude isNil ])
 			ifTrue: [ ^nil ].
 		GSCoordinates 
@@ -124,25 +138,15 @@ GSParser class >> parseDMS: aString [
 ]
 
 { #category : #public }
-GSParser class >> parseDecimal: aString [
-	"Parse the supplied coordinates assuming decimal 'lat long' format"
-
-	^(DecimalRE matches: aString) 
-		ifTrue: [ GSCoordinates 
-						latitude: (DecimalRE subexpression: 2) asNumber
-						longitude: (DecimalRE subexpression: 3) asNumber ]
-		ifFalse: [ nil ]
-]
-
-{ #category : #public }
 GSParser class >> parseDmsAngle: aString [
 	"Parse the supplied DMS angle"
-	| angle |
+	| re angle |
 
-	^ (DmsAngleRE matches: aString) ifTrue: 
-		[ angle := self decimalFromDegrees: (DmsAngleRE subexpression: 2) asNumber
-								minutes: (DmsAngleRE subexpression: 4) asNumber
-								seconds: (DmsAngleRE subexpression: 5) asNumber
+	re := DmsAngleRE copy.
+	^ (re matches: aString) ifTrue: 
+		[ angle := self decimalFromDegrees: (re subexpression: 2) asNumber
+								minutes: (re subexpression: 4) asNumber
+								seconds: (re subexpression: 5) asNumber
 								direction: ''.
 		angle ifNil: [ ^ nil ].
 		angle asFloat ]
@@ -181,11 +185,13 @@ GSParser class >> parseGeoCoordinate: aString [
 
 { #category : #parsing }
 GSParser class >> parseOpenStreetMap: aString [
+	| re |
 
-	^(OsmRE matches: aString) ifTrue: 
+	re := OsmRE copy.
+	^(re matches: aString) ifTrue: 
 		[ GSCoordinates 
-			latitude: (OsmRE subexpression: 2) asNumber
-			longitude: (OsmRE subexpression: 3) asNumber ]
+			latitude: (re subexpression: 2) asNumber
+			longitude: (re subexpression: 3) asNumber ]
 	ifFalse:
 		[ nil ]
 ]
@@ -193,10 +199,12 @@ GSParser class >> parseOpenStreetMap: aString [
 { #category : #public }
 GSParser class >> parsePoint: aString [
 	"Parse the supplied coordinates assuming long @ lat point format"
+	| re |
 
-	^(PointRE matches: aString) 
+	re := PointRE copy.
+	^(re matches: aString) 
 		ifTrue: [ GSCoordinates 
-						latitude: (PointRE subexpression: 3) asNumber
-						longitude: (PointRE subexpression: 2) asNumber ]
+						latitude: (re subexpression: 3) asNumber
+						longitude: (re subexpression: 2) asNumber ]
 		ifFalse: [ nil ]
 ]
